@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Group Member</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+{% include "navbar.html" %}
+<div class="container">
+  <h2>Add Channel Member Telegram</h2>
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="channel">Select Channel:</label>
+        <div class="col-sm-10">
+            <select class="form-control" id="channel">
+
+              </select>
+        </div>
+    </div>
+    <br />
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="path">Path:</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="path" placeholder="Enter xlsx file path with double \\" name="path">
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <div class="checkbox">
+          <label><input type="checkbox" name="remember"> Remember me</label>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button id="submit" type="submit" class="btn btn-success">Submit</button>
+      </div>
+    </div>
+</div>
+<div class="container" id="out_list" style="display:none;">
+    <h2 style="color:red;">Wrong Number:</h2>
+    <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Serial:</th>
+        <th>Name</th>
+      </tr>
+    </thead>
+    <tbody id="table_body">
+
+    </tbody>
+  </table>
+</div>
+<h2 id="alert"></h2>
+<script>
+
+     var list_data=[];
+     var list_hash=[];
+     $.ajax({
+            url: '/search/',
+            data: {
+              'name':'Jayed',
+            },
+            dataType: 'json',
+            success: function (data) {
+             console.log(data);
+              list_data=data.data;
+              list_hash=data.hash;
+              var count=0;
+              for(value in data.data)
+              {
+                if(parseInt(value)<-10000000000 && parseInt(value)<0)
+                {
+                var li_item=`<option value='`+value+`'>`+list_data[value]+`</option>`;
+                $("#group").append(li_item);
+                }
+              }
+
+            }
+          });
+
+        $('#submit').on("click", function(event) {
+        $("#alert").text('');
+        console.log('0');
+        var path=document.getElementById("path").value;
+        if(path != '' )
+        {
+            $.ajax({
+            url: '/add_contact_request/',
+            data: {
+              'path':path
+            },
+            dataType: 'json',
+            success: function (data) {
+                var count=1;
+                console.log(data.data);
+                if(data.data.length>0)
+                {
+                    for(let i in data.data)
+                    {
+                        console.log(data.data[i]);
+                        setInterval(add_channel_member_data(data.data[i][0],count),3000);
+                        count++;
+                    }
+                }
+                if(data.error !=""){
+                $("#alert").text(data.error);
+                }
+            }
+          });
+        }
+});
+var add_channel_member_data =(number,count) =>{
+    var channel=document.getElementById("channel").value;
+    $("#alert").text('');
+    $.ajax({
+            url: '/add_channel_member_data/',
+            data: {
+              'number':number,
+              'channel':channel
+            },
+            dataType: 'json',
+            success: function (data){
+                console.log(data);
+                if(data.data!='')
+                {
+                    $("#out_list").show();
+                    var text=`<tr><td>`+count+`</td><td>`+data.data+`</td></tr>`
+                    $("#table_body").append(text);
+
+                }
+                if(data.error !=""){
+                $("#alert").text(data.error);
+                }
+            }
+          });
+          clearInterval(add_group_member_data);
+          }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Contract</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+{% include "navbar.html" %}
+<div class="container">
+  <h2>Add Contract Telegram</h2>
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="extension">Extension:</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="extension" placeholder="Enter name extension" name="extension">
+      </div>
+    </div>
+    <br/>
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="path">Path:</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="path" placeholder="Enter xlxs file path using double \\" name="path">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <div class="checkbox">
+          <label><input type="checkbox" name="remember"> Remember me</label>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button id='submit' type="submit" class="btn btn-success">Submit</button>
+      </div>
+    </div>
+</div>
+<div class="container" id="out_list" style="display:none;">
+    <h2 style="color:red;">Wrong Number:</h2>
+    <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Serial:</th>
+        <th>Name</th>
+      </tr>
+    </thead>
+    <tbody id="table_body">
+
+    </tbody>
+  </table>
+</div>
+<h1 id="alert"></h1>
+<script>
+    $('#submit').on("click", function(event) {
+        $("#alert").text('');
+        var path=document.getElementById("path").value;
+        if(path != '' )
+        {
+            $.ajax({
+            url: '/xlsx_data_request/',
+            data: {
+              'path':path
+            },
+            dataType: 'json',
+            success: function (data) {
+                var count=0;
+                if(data.data.length>0)
+                {
+                    var add_contact_data = setInterval(function(){
+                        var extension=document.getElementById("extension").value;
+                       // console.log(number,username,count,extension);
+                        $.ajax({
+                                url: '/add_contact_data/',
+                                data: {
+                                  'number':data.data[count][0],
+                                  'username':data.data[count][1],
+                                  'extension':extension
+                                },
+                                dataType: 'json',
+                                success: function (value){
+                                    console.log(value);
+                                    if(value.data!='')
+                                    {
+                                        $("#out_list").show();
+                                        var text=`<tr><td>`+count+`</td><td>`+value.data+`</td></tr>`
+                                        $("#table_body").append(text);
+
+                                    }
+                                    if(value.error !=""){
+                                    $("#alert").text(value.error);
+                                    }
+                                    count++;
+                                    if(count==data.data.length)
+                                    {
+                                        clearInterval(add_contact_data);
+                                    }
+                                }
+                              });
+
+                    },6000);
+
+
+                }
+                if(data.error !=""){
+                $("#alert").text(data.error);
+                }
+            }
+          });
+        }
+});
+
+</script>
+</body>
+</html>

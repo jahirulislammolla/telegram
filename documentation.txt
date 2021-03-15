@@ -1,0 +1,4 @@
+# open this link...
+1. https://my.telegram.org/auth
+2. Enter your telegram number
+3.

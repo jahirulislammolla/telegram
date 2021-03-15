@@ -1,0 +1,15 @@
+{% load static %}
+<nav class="navbar navbar-inverse" style="">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{% url 'telegram' %}">Telegram</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li><a href="{% url 'telegram' %}">Home</a></li>
+      <li><a href="{% url 'add_contact' %}">Add Contact</a></li>
+      <li><a href="{% url 'add_group_member' %}">Add Group Memeber</a></li>
+      <li><a href="{% url 'add_channel_member'  %}">Add Channel Member</a> </li>
+      <li><a href="{% url 'sendMessage_xlsx'  %}">Message</a> </li>
+    </ul>
+  </div>
+</nav>

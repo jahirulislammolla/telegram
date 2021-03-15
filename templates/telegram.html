@@ -1,0 +1,317 @@
+<!doctype HTML>
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Telegram Chat Bot</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        .left_section{
+            border:1px solid gray;
+        }
+        input{
+            width:90%;
+            padding:3px;
+            font-size:15px;
+        }
+        #id_list{
+        margin-top:3px;
+        padding-left:0px;
+        }
+        div li{
+
+        }
+        div li:hover{
+          background-color:gray;
+        }
+        div li span:nth-child(1){
+            margin:2px;
+            font-size:15px;
+            padding:7px 15px 7px 15px;
+            border-radius:50px;
+            background-color:orange;
+            color:white;
+        }
+        h4{
+            padding-left: 5px;
+            padding-right:5px;
+        }
+        .show_selected_id{
+
+            border:1px dotted black;
+            height:450px;
+        }
+        .selected_item{
+            float:left;
+            width:50%;
+            display:flex;
+            align-items: center;
+        }
+        div span{
+            margin:2px;
+            font-size:15px;
+            padding:7px 15px 7px 15px;
+            border-radius:50px;
+            background-color:orange;
+            color:white;
+        }
+        i{
+            float: right;
+        }
+        .show_selected_id button{
+            margin-top:2px;
+            padding:1px 4px 1px 4px;
+            background-color:rgb(255, 38, 0);
+            color:whitesmoke;
+        }
+    </style>
+</head>
+<body>
+{% include "navbar.html" %}
+
+    <div class="container">
+        <div class="row" id="first_step">
+            <div class="col-md-4 left_section">
+                <h2>Telegram Chat Bot</h2>
+                <input id="id_search" placeholder="search"/>
+                <div class="id_list">
+
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div style="border:1px solid gray;">
+                    <h3 style="text-align:center;">Selected Id List( Maximum 16 )</h3>
+                    <div class="show_selected_id">
+
+                    </div>
+                </div>
+            </div>
+            <span id='submit_group' style="float:right;background-color:green;color:white;cursor:pointer;">Submit Group</span>
+        </div>
+        <div class="row" id="second_step" style="display:none;">
+            <div class="col-md-6">
+                <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Serial No</th>
+                        <th>Name</th>
+                        <th>Id</th>
+                           <th>Delete</th>
+                      </tr>
+                    </thead>
+                    <tbody id="table_body_1">
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Serial No</th>
+                        <th>Name</th>
+                        <th>Id</th>
+                          <th>Delete</th>
+                      </tr>
+                    </thead>
+                    <tbody id="table_body_2">
+
+                    </tbody>
+                </table>
+                <span id='submit_data' style="text-align:center;background-color:green;color:white;cursor:pointer;">Submit Id for Message</span>
+            </div>
+        </div>
+        <div class="row container" id="final_step" style="display:none;">
+             <textarea id="text_message" placeholder="message...." style="border:1px solid tomato ; height: 150px;width: 100%;" >
+
+             </textarea>
+
+            <button id='send_message' style="color:white; background-color: rgb(5, 101, 156); padding: 10px; float: right;">send</button>
+        <span id='alert' style="background-color: green;"></span>
+        </div>
+
+
+    </div>
+<script type="text/javascript">
+     $(document).ready(function() {
+     var check_repeat=[];
+     var selected_list=[];
+     var list_data={};
+     var data_all={};
+     var index=0;
+     $("#submit_group").on("click",function(event){
+       $("#first_step").hide();
+        if(selected_list.length>0)
+        {
+          var get_group_data = setInterval(function(){
+            $.ajax({
+            url: '/get_group_data/',
+            data: {
+              'selected_list':selected_list[index]
+            },
+            dataType: 'json',
+            success: function (data) {
+                for(value in data.data)
+                {
+                    data_all[value]=data.data[value];
+                }
+                 if(index==selected_list.length)
+                    {
+                        $("#second_step").show();
+                        clearInterval(get_group_data);
+                        console.log(data_all);
+                        var count=1;
+                        for(value in data_all)
+                        {
+                           var text=`<tr id='`+value+`_tr'><td>`+count+`</td><td>`+data_all[value]+`</td><td>`+value+
+                           `</td><td><button class='dangar' id='`+value+`_id'>X</button></td></tr>`;
+                            if(count%2==1)
+                            {
+                                $("#table_body_1").append(text);
+                            }
+                            else{
+                                 $("#table_body_2").append(text);
+                            }
+                            count++;
+                        }
+                    }
+            }});
+             index++;
+          },3000);
+        }
+     });
+    $('#submit_data').on('click',function(){
+        $("#second_step").hide();
+        $("#final_step").show();
+    });
+    $("table").on("click","button", function(event){
+        var id=$(this).attr('id').split("_")[0];
+        console.log(id);
+        $("#"+id+"_tr").hide();
+        id=parseInt(id);
+        data_all[id]='';
+        //console.log(data_all);
+    });
+     //
+      $(".id_list").on("click", "li", function (event) {
+        $("#alert").text('');
+        var id=$(this).attr('id');
+        if (!selected_list.includes(id) && selected_list.length<16)
+        {   var li_item=`<div class='selected_item' id='`+id+`_div'>`+$(this).html()+`<i><button id='`+id+`'>X</button></i></div>`
+            $('.show_selected_id').append(li_item);
+            selected_list.push(id);
+        }
+     });
+    var onChangeSearch = (text) => {
+        $('.id_list').html('');
+        var count=0;
+        for(value in list_data){
+            if(list_data[value].toUpperCase().search(text)>=0 && parseInt(value)>-10000000000 && parseInt(value)<0)
+            {
+                count++;
+                var li_item=`<li id='`+value+`' style='list-style:none;margin-top:10px;width:100%;display:flex;cursor:pointer;'>
+                               <span>`+list_data[value][0].toUpperCase()+`</span>
+                               <h4>`+list_data[value]+`(`+value+`)</h4>
+                       </li>`
+                $(".id_list").append(li_item);
+                if(count==10)
+                {
+                    break;
+                }
+            }
+            clearInterval(onChangeSearch);
+        }
+    };
+    $("#id_search").on("keyup",function(){
+        var text=$(this).val().toUpperCase();
+        setInterval(onChangeSearch(text),500);
+    });
+
+    $('#send_message').on('click',function(){
+        var text_message=$("#text_message").val().trim();
+        var message_id=[];
+            for(value in data_all)
+            {
+                if(data_all[value] != '')
+                    message_id.push(value);
+            }
+        console.log(message_id);
+        var check_count=0;
+        if(text_message.trim() != '' && message_id.length>0)
+        {
+            var count=0;
+            var send_message = setInterval(function(){
+                $.ajax({
+                url: '/sendMessage/',
+                data: {
+                  'text_message':text_message,
+                  'selected_id':message_id[count]
+                },
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data);
+                    console.log(count);
+                     count++;
+                     var list=`<li>`+data.data+`</li>`;
+                     if(data.data != '')
+                     {
+                      $("#alert").append(list);
+                      check_count++;
+                     }
+                     if(count==message_id.length)
+                     {
+                        clearInterval(send_message);
+                        $("#alert").append(`<li>Send Message total :`+(count-check_count)+`</li>`);
+                     }
+
+                }
+          });
+
+            },5000);
+
+        }
+        $("#text_message").val('');
+    });
+     $(".show_selected_id").on('click', 'button', function (event){
+        var id=$(this).attr('id');
+        $('#'+id+'_div').hide();
+         selected_list = selected_list.filter(value => value != id);
+        //  console.log(selected_list);
+        });
+    $.ajax({
+            url: '/search/',
+            data: {
+              'name':'Jayed',
+            },
+            dataType: 'json',
+            success: function (data) {
+            // console.log(data);
+              list_data=data.data;
+              var count=0;
+              for(value in data.data)
+              {
+               if(parseInt(value)>-10000000000 && parseInt(value)<0)
+               {
+                count++;
+                var li_item=`<li id='`+value+`' style='list-style:none;margin-top:10px;width:100%;display:flex;cursor:pointer;'>
+                               <span>`+list_data[value][0].toUpperCase()+`</span>
+                               <h4>`+list_data[value]+`(`+value+`)</h4>
+                       </li>`
+                $(".id_list").append(li_item);
+                }
+                if (count==10)
+                {
+                    break;
+                }
+              }
+
+            }
+          });
+
+     });
+</script>
+</body>
+</html>

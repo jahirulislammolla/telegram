@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Send Message from xlsx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        .left_section{
+            border:1px solid gray;
+        }
+        input{
+            width:90%;
+            padding:3px;
+            font-size:15px;
+        }
+        #id_list{
+        margin-top:3px;
+        padding-left:0px;
+        }
+        div li{
+
+        }
+        div li:hover{
+          background-color:gray;
+        }
+        div li span:nth-child(1){
+            margin:2px;
+            font-size:15px;
+            padding:7px 15px 7px 15px;
+            border-radius:50px;
+            background-color:orange;
+            color:white;
+        }
+        h4{
+            padding-left: 5px;
+            padding-right:5px;
+        }
+        .show_selected_id{
+
+            border:1px dotted black;
+            height:450px;
+        }
+        .selected_item{
+            float:left;
+            width:50%;
+            display:flex;
+            align-items: center;
+        }
+        div span{
+            margin:2px;
+            font-size:15px;
+            padding:7px 15px 7px 15px;
+            border-radius:50px;
+            background-color:orange;
+            color:white;
+        }
+        i{
+            float: right;
+        }
+        .show_selected_id button{
+            margin-top:2px;
+            padding:1px 4px 1px 4px;
+            background-color:rgb(255, 38, 0);
+            color:whitesmoke;
+        }
+    </style>
+</head>
+<body>
+{% include "navbar.html" %}
+
+    <div class="container">
+        <h2>Add Channel Member Telegram</h2>
+        <div class="form-group">
+          <label class="control-label col-sm-2" for="path">Path:</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="path" placeholder="Enter xlsx file path with double \\" name="path">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:70px;">
+            <label class="control-label col-sm-2" for="message">Message:</label>
+            <div class="col-sm-10">
+                 <textarea id="message" placeholder="message...." style="border:1px solid tomato ; height: 150px;width: 100%;" name="message"></textarea>
+                 <button id='send_message' style="color:white; background-color: rgb(5, 101, 156); padding: 10px; float: right;">send</button>
+            </div>
+        </div>
+    </div>
+    <div class="container" id="out_list" style="display:none;">
+        <h2 style="color:red;">Wrong Number:</h2>
+        <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Serial:</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody id="table_body">
+
+        </tbody>
+      </table>
+    </div>
+    <h1 id="alert"></h1>
+<script type="text/javascript">
+     $(document).ready(function() {
+              $('#send_message').on("click", function(event) {
+                $("#alert").text('');
+                var path=document.getElementById("path").value;
+                var text_message=$("#message").val().trim();
+                if(path != '' )
+                {
+                    $.ajax({
+                    url: '/xlsx_data_request/',
+                    data: {
+                      'path':path
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log(data);
+                        if(text_message != '' && data.data.length>0)
+                            {
+                                var count=0;
+                                var send_message = setInterval(function(){
+                                    $.ajax({
+                                    url: '/sendMessage/',
+                                    data: {
+                                      'text_message':text_message,
+                                      'selected_id':data.data[count]
+                                    },
+                                    dataType: 'json',
+                                    success: function (value) {
+                                        console.log(value);
+                                        count++;
+                                         if(value.data != '')
+                                         {
+                                           $("#out_list").show();
+                                            var text=`<tr><td>`+count+`</td><td>`+value.data+`</td></tr>`
+                                            $("#table_body").append(text);
+                                         }
+                                         if(count==data.data.length)
+                                         {
+                                            clearInterval(send_message);
+                                            $("#alert").text(`Send Message total : `+count+``);
+                                         }
+
+                                    }
+                              });
+
+                                },6000);
+
+                            }
+                    }
+                  });
+                }
+     });
+     });
+</script>
+</body>
+</html>
